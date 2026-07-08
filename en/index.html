@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XiaoH AI Studio — 3D Model Store</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0f;
+  --bg-card: #141420;
+  --bg-card-hover: #1a1a2e;
+  --border: #222240;
+  --border-hover: #3a3a6e;
+  --text: #e0e0f0;
+  --text-muted: #8888aa;
+  --accent: #6366f1;
+  --accent-glow: rgba(99,102,241,0.25);
+  --gold: #f59e0b;
+  --wechat-green: #07c160;
+  --danger: #ef4444;
+  --success: #10b981;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(99,102,241,0.05) 0%, transparent 50%);
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ── Header ── */
+.hero {
+  text-align: center;
+  padding: 60px 20px 40px;
+  position: relative;
+}
+
+.hero-badge {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: rgba(99,102,241,0.12);
+  border: 1px solid rgba(99,102,241,0.25);
+  color: #a5b4fc;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 800;
+  background: linear-gradient(135deg, #e0e0f0 0%, #a5b4fc 50%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.hero p {
+  font-size: 16px;
+  color: var(--text-muted);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ── Product Grid ── */
+.products {
+  display: grid;
+  gap: 16px;
+  padding: 0 0 40px;
+}
+
+.product-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s, transform 0.3s, box-shadow 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+
+.product-card.selected {
+  border-color: var(--accent);
+  background: rgba(99,102,241,0.08);
+  box-shadow: 0 0 30px var(--accent-glow);
+}
+
+.product-card.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.10));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  flex-shrink: 0;
+  border: 1px solid rgba(99,102,241,0.15);
+}
+
+.product-info { flex: 1; min-width: 0; }
+
+.product-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f0f0ff;
+  margin-bottom: 4px;
+}
+
+.product-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.product-price {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--gold);
+  white-space: nowrap;
+  padding-left: 8px;
+}
+
+/* ── Summary Bar ── */
+.summary-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background: rgba(10,10,15,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding: 16px 0;
+}
+
+.summary-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.summary-info { display: flex; align-items: baseline; gap: 10px; }
+
+.summary-label {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.summary-count {
+  font-size: 14px;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.05);
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.summary-total {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.summary-actions { display: flex; gap: 10px; }
+
+.btn {
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 20px var(--accent-glow);
+}
+
+.btn-primary:hover { background: #5558e6; transform: translateY(-1px); box-shadow: 0 6px 28px var(--accent-glow); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.btn-outline:hover { color: #fff; border-color: var(--text-muted); }
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Payment Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 36px 28px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  line-height: 1;
+}
+
+.modal-close:hover { color: #fff; background: rgba(255,255,255,0.05); }
+
+.modal h2 {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.modal .amount {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--gold);
+  margin-bottom: 20px;
+}
+
+.modal .qr-wrapper {
+  background: #fff;
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: inline-block;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.modal .qr-wrapper img {
+  width: 220px;
+  height: 220px;
+  display: block;
+  border-radius: 4px;
+}
+
+.modal .scan-hint {
+  font-size: 15px;
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.modal .scan-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pay-methods {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.pay-tab {
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.pay-tab.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.bank-info {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+  margin-bottom: 14px;
+}
+.bank-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 14px;
+}
+.bank-row:last-child { border-bottom: none; }
+.copyable {
+  color: var(--gold);
+  font-weight: 700;
+  cursor: pointer;
+  user-select: all;
+}
+
+.modal .order-summary {
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-top: 18px;
+  text-align: left;
+}
+
+.modal .order-summary h4 {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.modal .order-summary ul {
+  list-style: none;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.modal .order-summary li {
+  padding: 4px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal .order-summary .divider {
+  border-top: 1px solid var(--border);
+  margin: 8px 0;
+  padding-top: 8px;
+  font-weight: 700;
+}
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  padding: 40px 20px 100px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.footer .brand {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.footer a {
+  color: #a5b4fc;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.footer a:hover { border-color: #a5b4fc; }
+
+.footer .contact-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .hero { padding: 40px 16px 28px; }
+  .product-card { padding: 18px; gap: 14px; }
+  .product-icon { width: 52px; height: 52px; font-size: 28px; }
+  .product-price { font-size: 16px; }
+  .summary-inner { flex-direction: column; align-items: stretch; text-align: center; }
+  .summary-actions { justify-content: center; }
+  .modal { padding: 28px 18px; }
+  .modal .qr-wrapper img { width: 180px; height: 180px; }
+}
+
+/* ── GSAP entry animation states ── */
+.anim-hidden { opacity: 0; transform: translateY(24px); }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══ Hero ═══ -->
+  <header class="hero anim-hidden" data-anim>
+    <div class="hero-badge">XiaoH AI Studio</div>
+    <h1>🎨 Premium 3D Model Store</h1>
+    <p>Six high-quality 3D models for game development, animation, 3D printing, and scene building. One click to select, scan to pay, instant download.</p>
+  </header>
+
+  <!-- ═══ Products ═══ -->
+  <div class="products" id="products">
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:8px;text-align:center;">👇 Click cards to select models</p>
+    <div class="product-card anim-hidden" data-anim data-id="tree" data-price="9.99">
+      <div class="product-icon">🌳</div>
+      <div class="product-info">
+        <div class="product-name">Low Poly Tree</div>
+        <div class="product-desc">Low-poly style tree. Optimized polygon count, clean textures, drag-and-drop ready.</div>
+      </div>
+      <div class="product-price">$9.99</div>
+    </div>
+
+    <div class="product-card anim-hidden" data-anim data-id="gem" data-price="14.99">
+      <div class="product-icon">💎</div>
+      <div class="product-info">
+        <div class="product-name">Crystal Gem</div>
+        <div class="product-desc">Stunning crystal gem with multi-facet refraction. Includes glow material presets. Great for UI decoration and prop display.</div>
+      </div>
+      <div class="product-price">$14.99</div>
+    </div>
+
+    <div class="product-card anim-hidden" data-anim data-id="sculpture" data-price="19.99">
+      <div class="product-icon">🔷</div>
+      <div class="product-info">
+        <div class="product-name">Geometric Sculpture</div>
+        <div class="product-desc">Abstract geometric sculpture in modern art style. Complex surfaces and hard edges. Suitable for architectural visualization and exhibition design.</div>
+      </div>
+      <div class="product-price">$19.99</div>
+    </div>
+
+    <div class="product-card anim-hidden" data-anim data-id="vase" data-price="9.99">
+      <div class="product-icon">🏺</div>
+      <div class="product-info">
+        <div class="product-name">Aether Vase</div>
+        <div class="product-desc">Ethereal style vase with flowing curves. Fine topology, ready for 3D printing or interior rendering.</div>
+      </div>
+      <div class="product-price">$9.99</div>
+    </div>
+
+    <div class="product-card anim-hidden" data-anim data-id="ore" data-price="14.99">
+      <div class="product-icon">💠</div>
+      <div class="product-info">
+        <div class="product-name">Crystal Ore</div>
+        <div class="product-desc">Crystal ore model with natural crystalline formations. Rock base with crystal cluster. Perfect for fantasy scenes and resource props.</div>
+      </div>
+      <div class="product-price">$14.99</div>
+    </div>
+
+    <div class="product-card anim-hidden" data-anim data-id="snow" data-price="24.99">
+      <div class="product-icon">⛄</div>
+      <div class="product-info">
+        <div class="product-name">Snow Character</div>
+        <div class="product-desc">Snowman character model in cute cartoon style. Includes basic skeleton rig. Ready for animation and game characters.</div>
+      </div>
+      <div class="product-price">$24.99</div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ═══ Sticky Summary Bar ═══ -->
+<div class="summary-bar" id="summaryBar">
+  <div class="container">
+    <div class="summary-inner">
+      <div class="summary-info">
+        <span class="summary-label">Selected</span>
+        <span class="summary-count" id="selectedCount">0 item(s)</span>
+        <span class="summary-total" id="totalPrice">$0.00</span>
+      </div>
+      <div class="summary-actions">
+        <button class="btn btn-outline" id="btnClear" onclick="clearAll()">Clear</button>
+        <button class="btn btn-primary" id="btnPay" onclick="openPayment()">💳 💳 Pay</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Payment Modal ═══ -->
+<div class="modal-overlay" id="paymentModal" style="display:none">
+  <div class="modal" id="modalBox">
+    <button class="modal-close" onclick="closePayment()">✕</button>
+    <h2>Select Payment Method</h2>
+    <div class="amount" id="modalAmount">$0.00</div>
+    <div class="pay-methods">
+      <button class="pay-tab active" onclick="switchPay('wechat')">💚 WeChat Pay</button>
+      <button class="pay-tab" onclick="switchPay('wise')">🏦 Bank Transfer</button>
+    </div>
+    <div id="pay-wechat">
+      <div class="qr-wrapper">
+        <img src="qr-code.jpg?v=1783530356" alt="微信支付收款码" alt="微信收款码">
+      </div>
+      <div class="scan-hint">📱 Scan with WeChat to pay</div>
+      <div class="scan-sub">支付完成后请联系客服发送模型文item(s)</div>
+    </div>
+    <div id="pay-wise" style="display:none;">
+      <div class="bank-info">
+        <div class="bank-row"><span>Bank</span><span>Column Bank (via Wise)</span></div>
+        <div class="bank-row"><span>Account Name</span><span><b>fengrui chen</b></span></div>
+        <div class="bank-row"><span>Routing</span><span class="copyable" onclick="copyBankInfo(this)">084009519</span></div>
+        <div class="bank-row"><span>Account No.</span><span class="copyable" onclick="copyBankInfo(this)">756645545279336</span></div>
+        <div class="bank-row"><span>Swift</span><span>TRWIUS35XXX</span></div>
+      </div>
+      <div class="scan-hint">🏦 Transfer via Wise or banking app to the account above</div>
+      <div class="scan-sub">转账完成后请联系客服发送模型文item(s)</div>
+      <div class="scan-sub" style="margin-top:4px;">📧 Contact: <a href="https://x.com/chfr1982ijdr" target="_blank" rel="noopener noreferrer" style="color:#a5b4fc;">X / @chfr1982ijdr</a></div>
+    </div>
+    <div class="order-summary" id="orderSummary"></div>
+  </div>
+</div>
+
+<!-- ═══ Footer ═══ -->
+<footer class="footer anim-hidden" data-anim>
+  <div class="brand">XiaoH AI Studio</div>
+  <p>Professional 3D Models · High Quality · Instant Delivery</p>
+  <div class="contact-links">
+    <span>📧 Contact: </span>
+    <a href="https://x.com/chfr1982ijdr" target="_blank" rel="noopener noreferrer">X / @chfr1982ijdr</a>
+    <a href="https://chfr1982.gumroad.com" target="_blank" rel="noopener noreferrer">chfr1982.gumroad.com</a>
+  </div>
+  <p style="margin-top:14px; font-size:11px; opacity:0.5;">© 2026 XiaoH AI Studio. All rights reserved.</p>
+</footer>
+
+<script>
+/* ═══ State ═══ */
+const selected = new Set();
+
+/* ═══ Product Card Click ═══ */
+document.querySelectorAll('.product-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const id = card.dataset.id;
+    if (selected.has(id)) {
+      selected.delete(id);
+      card.classList.remove('selected');
+    } else {
+      selected.add(id);
+      card.classList.add('selected');
+    }
+    updateSummary();
+  });
+});
+
+/* ═══ Summary ═══ */
+function copyBankInfo(el) {
+  const text = el.textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Copied: ' + text);
+  }).catch(() => {
+    showToast('Copy failed. Please select manually');
+  });
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#6366f1;color:#fff;padding:12px 28px;border-radius:12px;font-weight:600;z-index:999;animation:fadeOut 3s forwards';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function updateSummary() {
+  const count = selected.size;
+  let total = 0;
+  selected.forEach(id => {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    total += parseFloat(card.dataset.price);
+  });
+  document.getElementById('selectedCount').textContent = count + ' item(s)';
+  document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+}
+
+function clearAll() {
+  selected.clear();
+  document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+  updateSummary();
+  // re-sync: force DOM state match
+  document.querySelectorAll('.product-card.selected').forEach(c => c.classList.remove('selected'));
+}
+
+/* ═══ Payment Modal ═══ */
+function switchPay(method) {
+  document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.pay-tab[onclick*="${method}"]`).classList.add('active');
+  document.getElementById('pay-wechat').style.display = method === 'wechat' ? '' : 'none';
+  document.getElementById('pay-wise').style.display = method === 'wise' ? '' : 'none';
+}
+
+function openPayment() {
+  if (selected.size === 0) {
+    showToast('Please select models first');
+    return;
+  }
+  let total = 0;
+  const items = [];
+  selected.forEach(id => {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    const price = parseFloat(card.dataset.price);
+    total += price;
+    items.push({ name: card.querySelector('.product-name').textContent, price });
+  });
+
+  document.getElementById('modalAmount').textContent = '$' + total.toFixed(2);
+
+  const summaryEl = document.getElementById('orderSummary');
+  let html = '<h4>📋 Order Details</h4><ul>';
+  items.forEach(it => {
+    html += `<li><span>${it.name}</span><span>$${it.price.toFixed(2)}</span></li>`;
+  });
+  html += `<li class="divider"><span>Total</span><span>$${total.toFixed(2)}</span></li></ul>`;
+  summaryEl.innerHTML = html;
+
+  document.getElementById('paymentModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  if (typeof gsap !== 'undefined') {
+    gsap.fromTo('#modalBox', { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(1.5)' });
+  }
+}
+
+function closePayment() {
+  document.getElementById('paymentModal').style.display = 'none';
+  document.body.style.overflow = '';
+  if (typeof gsap !== 'undefined') {
+    gsap.set('#modalBox', { scale: 1, opacity: 1 });
+  }
+}
+
+document.getElementById('paymentModal').addEventListener('click', function(e) {
+  if (e.target === this) closePayment();
+});
+
+/* ═══ GSAP Scroll Animations ═══ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Fallback: always show content even if GSAP fails
+  const animEls = document.querySelectorAll('[data-anim]');
+  if (typeof gsap === 'undefined') {
+    animEls.forEach(el => { el.style.opacity = '1'; el.style.transform = 'none'; });
+    document.getElementById('summaryBar').style.opacity = '1';
+    document.getElementById('summaryBar').style.transform = 'none';
+    return;
+  }
+  animEls.forEach((el, i) => {
+    gsap.fromTo(el,
+      { opacity: 0, y: 30 },
+      {
+        opacity: 1, y: 0,
+        duration: 0.6,
+        delay: i * 0.08 + 0.2,
+        ease: 'power2.out'
+      }
+    );
+  });
+
+  /* Animate summary bar on first selection */
+  const summaryBar = document.getElementById('summaryBar');
+  gsap.set(summaryBar, { y: 80, opacity: 0 });
+  gsap.to(summaryBar, { y: 0, opacity: 1, duration: 0.5, delay: 1.6, ease: 'power2.out' });
+});
+</script>
+
+</body>
+</html>
