@@ -244,6 +244,12 @@ body {
 
 .btn-outline:hover { color: #fff; border-color: var(--text-muted); }
 
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* ── Payment Modal ── */
 .modal-overlay {
   position: fixed;
@@ -604,6 +610,14 @@ document.querySelectorAll('.product-card').forEach(card => {
 });
 
 /* ═══ Summary ═══ */
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#6366f1;color:#fff;padding:12px 28px;border-radius:12px;font-weight:600;z-index:999;animation:fadeOut 2s forwards';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
 function updateSummary() {
   const count = selected.size;
   let total = 0;
@@ -632,7 +646,10 @@ function switchPay(method) {
 }
 
 function openPayment() {
-  if (selected.size === 0) return;
+  if (selected.size === 0) {
+    showToast('请先选择要购买的模型');
+    return;
+  }
   let total = 0;
   const items = [];
   selected.forEach(id => {
