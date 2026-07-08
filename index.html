@@ -585,8 +585,8 @@ body {
   <p>专业3D模型设计 · 高品质 · 即时交付</p>
   <div class="contact-links">
     <span>📧 联系客服：</span>
-    <a href="https://x.com/chfr1982ijdr" target="_blank">X / @chfr1982ijdr</a>
-    <a href="https://chfr1982.gumroad.com" target="_blank">chfr1982.gumroad.com</a>
+    <a href="https://x.com/chfr1982ijdr" target="_blank" rel="noopener noreferrer">X / @chfr1982ijdr</a>
+    <a href="https://chfr1982.gumroad.com" target="_blank" rel="noopener noreferrer">chfr1982.gumroad.com</a>
   </div>
   <p style="margin-top:14px; font-size:11px; opacity:0.5;">© 2026 XiaoH AI Studio. All rights reserved.</p>
 </footer>
@@ -671,16 +671,18 @@ function openPayment() {
   summaryEl.innerHTML = html;
 
   document.getElementById('paymentModal').style.display = 'flex';
-  gsap.fromTo('#modalBox', { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(1.5)' });
+  document.body.style.overflow = 'hidden';
+  if (typeof gsap !== 'undefined') {
+    gsap.fromTo('#modalBox', { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(1.5)' });
+  }
 }
 
 function closePayment() {
-  gsap.to('#modalBox', {
-    scale: 0.9, opacity: 0, duration: 0.2,
-    onComplete: () => {
-      document.getElementById('paymentModal').style.display = 'none';
-    }
-  });
+  document.getElementById('paymentModal').style.display = 'none';
+  document.body.style.overflow = '';
+  if (typeof gsap !== 'undefined') {
+    gsap.set('#modalBox', { scale: 1, opacity: 1 });
+  }
 }
 
 document.getElementById('paymentModal').addEventListener('click', function(e) {
@@ -689,7 +691,14 @@ document.getElementById('paymentModal').addEventListener('click', function(e) {
 
 /* ═══ GSAP Scroll Animations ═══ */
 document.addEventListener('DOMContentLoaded', () => {
+  // Fallback: always show content even if GSAP fails
   const animEls = document.querySelectorAll('[data-anim]');
+  if (typeof gsap === 'undefined') {
+    animEls.forEach(el => { el.style.opacity = '1'; el.style.transform = 'none'; });
+    document.getElementById('summaryBar').style.opacity = '1';
+    document.getElementById('summaryBar').style.transform = 'none';
+    return;
+  }
   animEls.forEach((el, i) => {
     gsap.fromTo(el,
       { opacity: 0, y: 30 },
