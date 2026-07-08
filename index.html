@@ -473,6 +473,7 @@ body {
 
   <!-- ═══ Products ═══ -->
   <div class="products" id="products">
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:8px;text-align:center;">👇 点击卡片选择模型</p>
     <div class="product-card anim-hidden" data-anim data-id="tree" data-price="9.99">
       <div class="product-icon">🌳</div>
       <div class="product-info">
@@ -568,12 +569,13 @@ body {
       <div class="bank-info">
         <div class="bank-row"><span>银行</span><span>Column Bank (via Wise)</span></div>
         <div class="bank-row"><span>户名</span><span><b>fengrui chen</b></span></div>
-        <div class="bank-row"><span>Routing</span><span class="copyable">084009519</span></div>
-        <div class="bank-row"><span>账号</span><span class="copyable">756645545279336</span></div>
+        <div class="bank-row"><span>Routing</span><span class="copyable" onclick="copyBankInfo(this)">084009519</span></div>
+        <div class="bank-row"><span>账号</span><span class="copyable" onclick="copyBankInfo(this)">756645545279336</span></div>
         <div class="bank-row"><span>Swift</span><span>TRWIUS35XXX</span></div>
       </div>
       <div class="scan-hint">🏦 通过Wise/银行App转账至上方账户</div>
       <div class="scan-sub">转账完成后请联系客服发送模型文件</div>
+      <div class="scan-sub" style="margin-top:4px;">📧 联系客服：<a href="https://x.com/chfr1982ijdr" target="_blank" rel="noopener noreferrer" style="color:#a5b4fc;">X / @chfr1982ijdr</a></div>
     </div>
     <div class="order-summary" id="orderSummary"></div>
   </div>
@@ -611,12 +613,21 @@ document.querySelectorAll('.product-card').forEach(card => {
 });
 
 /* ═══ Summary ═══ */
+function copyBankInfo(el) {
+  const text = el.textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('已复制: ' + text);
+  }).catch(() => {
+    showToast('复制失败，请手动选择');
+  });
+}
+
 function showToast(msg) {
   const t = document.createElement('div');
   t.textContent = msg;
-  t.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#6366f1;color:#fff;padding:12px 28px;border-radius:12px;font-weight:600;z-index:999;animation:fadeOut 2s forwards';
+  t.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#6366f1;color:#fff;padding:12px 28px;border-radius:12px;font-weight:600;z-index:999;animation:fadeOut 3s forwards';
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2000);
+  setTimeout(() => t.remove(), 3000);
 }
 
 function updateSummary() {
